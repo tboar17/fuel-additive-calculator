@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fuel Additive Calculator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <meta name="theme-color" content="#0f172a" />
+  <style>
+    :root {
+      --bg: #020617;
+      --bg-elevated: #020617;
+      --card: #020617;
+      --card-soft: #020617;
+      --border-subtle: rgba(148, 163, 184, 0.35);
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.12);
+      --accent-strong: #0ea5e9;
+      --text: #e5e7eb;
+      --text-muted: #9ca3af;
+      --danger: #f97373;
+      --radius-lg: 18px;
+      --radius-pill: 999px;
+      --shadow-soft: 0 18px 40px rgba(15, 23, 42, 0.55);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top, rgba(56, 189, 248, 0.16), transparent 55%),
+        radial-gradient(circle at bottom, rgba(59, 130, 246, 0.25), #020617);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 460px;
+      padding: 16px clamp(16px, 4vw, 20px) 24px;
+    }
+
+    .app-card {
+      background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(15, 23, 42, 0.92));
+      border-radius: 24px;
+      box-shadow: var(--shadow-soft);
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      padding: 18px 18px 20px;
+      backdrop-filter: blur(18px);
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .app-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: radial-gradient(circle at 20% 0%, #38bdf8, #0f172a);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 12px 30px rgba(8, 47, 73, 0.8);
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .app-title-block {
+      flex: 1;
+    }
+
+    .app-title {
+      font-size: 18px;
+      font-weight: 650;
+      letter-spacing: 0.01em;
+    }
+
+    .app-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    label {
+      font-size: 13px;
+      font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      color: rgba(226, 232, 240, 0.96);
+    }
+
+    label span.hint {
+      font-size: 11px;
+      font-weight: 400;
+      color: var(--text-muted);
+    }
+
+    input[type="number"] {
+      width: 100%;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-subtle);
+      padding: 10px 12px;
+      font-size: 14px;
+      background: rgba(15, 23, 42, 0.96);
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease,
+        background 0.15s ease;
+    }
+
+    input[type="number"]::placeholder {
+      color: rgba(148, 163, 184, 0.7);
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.65);
+      background: rgba(15, 23, 42, 0.98);
+    }
+
+    .ppm-group {
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.06), transparent 60%),
+                  rgba(15, 23, 42, 0.9);
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .ppm-options {
+      display: flex;
+      gap: 6px;
+    }
+
+    .ppm-pill {
+      flex: 1;
+      border-radius: var(--radius-pill);
+      border: 1px solid transparent;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 7px 10px;
+      font-size: 13px;
+      text-align: center;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      user-select: none;
+      transition: background 0.14s ease, border-color 0.14s ease,
+        color 0.14s ease, transform 0.08s ease;
+    }
+
+    .ppm-pill input {
+      display: none;
+    }
+
+    .ppm-pill span.ppm-label {
+      font-weight: 500;
+    }
+
+    .ppm-pill span.ppm-note {
+      font-size: 11px;
+      opacity: 0.85;
+    }
+
+    .ppm-pill.selected {
+      background: linear-gradient(to right, var(--accent-soft), rgba(15, 23, 42, 0.98));
+      border-color: rgba(56, 189, 248, 0.8);
+      color: var(--accent-strong);
+      transform: translateY(-1px);
+    }
+
+    .ppm-pill:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .button-row {
+      margin-top: 6px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    button[type="submit"] {
+      flex: 1;
+      border: none;
+      border-radius: var(--radius-pill);
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      background: linear-gradient(to right, #0ea5e9, #22c55e);
+      color: #0b1120;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(34, 197, 94, 0.35);
+      transition: transform 0.08s ease, box-shadow 0.08s ease,
+        filter 0.12s ease;
+    }
+
+    button[type="submit"]:active {
+      transform: translateY(1px) scale(0.99);
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.9);
+      filter: brightness(0.95);
+    }
+
+    .tiny-note {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .error {
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--danger);
+    }
+
+    .results-card {
+      margin-top: 16px;
+      border-radius: 20px;
+      border: 1px dashed rgba(148, 163, 184, 0.55);
+      padding: 12px 12px 10px;
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.9));
+    }
+
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 8px;
+    }
+
+    .results-title {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    .results-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .tank-card {
+      border-radius: 16px;
+      padding: 9px 10px;
+      background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 60%),
+                  rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+    }
+
+    .tank-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+
+    .tank-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .tank-capacity {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .tank-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .tank-row span.label {
+      color: var(--text-muted);
+    }
+
+    .tank-row span.value {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .footnote {
+      margin-top: 8px;
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    @media (min-width: 400px) {
+      .results-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="app-card">
+      <header class="app-header">
+        <div class="app-icon">PPM</div>
+        <div class="app-title-block">
+          <div class="app-title">Fuel Additive Calculator</div>
+          <div class="app-subtitle">
+            100 gal + 150 gal tanks · Lucas Marine 2-stroke oil
+          </div>
+        </div>
+      </header>
+
+      <form id="calculator" novalidate>
+        <div class="field">
+          <label for="miles">
+            Miles since last fill
+            <span class="hint">Total odometer miles on this tank pair</span>
+          </label>
+          <input
+            id="miles"
+            type="number"
+            inputmode="decimal"
+            step="0.1"
+            min="0"
+            placeholder="e.g. 850"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="mpg">
+            Estimated fuel economy (MPG)
+            <span class="hint">Use your running average for this route</span>
+          </label>
+          <input
+            id="mpg"
+            type="number"
+            inputmode="decimal"
+            step="0.1"
+            min="0.1"
+            placeholder="e.g. 6.5"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label>
+            Target PPM
+            <span class="hint">Per Grok math using TC-W3 2-stroke oil</span>
+          </label>
+          <div class="ppm-group" id="ppm-group">
+            <div class="ppm-options">
+              <label class="ppm-pill selected">
+                <input type="radio" name="ppm" value="400" checked />
+                <span class="ppm-label">400 ppm</span>
+                <span class="ppm-note">baseline</span>
+              </label>
+              <label class="ppm-pill">
+                <input type="radio" name="ppm" value="450" />
+                <span class="ppm-label">450 ppm</span>
+                <span class="ppm-note">mid</span>
+              </label>
+              <label class="ppm-pill">
+                <input type="radio" name="ppm" value="500" />
+                <span class="ppm-label">500 ppm</span>
+                <span class="ppm-note">max</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="button-row">
+          <button type="submit">Calculate additive</button>
+          <span class="tiny-note">
+            Tanks assumed equalized; both filled to the neck.
+          </span>
+        </div>
+        <div id="error" class="error" aria-live="polite"></div>
+      </form>
+
+      <section id="results" class="results-card" aria-live="polite">
+        <div class="results-header">
+          <div class="results-title">Results</div>
+          <div class="results-subtitle">
+            Enter values and tap “Calculate”
+          </div>
+        </div>
+        <div id="results-body" style="font-size: 11px; color: var(--text-muted);">
+          This will show:
+          <ul style="margin: 4px 0 0 16px; padding: 0;">
+            <li>Estimated gallons burned</li>
+            <li>Gallons added to each tank (100 + 150)</li>
+            <li>2-stroke oil per tank (fl oz + mL)</li>
+          </ul>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const form = document.getElementById("calculator");
+      const errorBox = document.getElementById("error");
+      const resultsBody = document.getElementById("results-body");
+      const ppmGroup = document.getElementById("ppm-group");
+
+      const TOTAL_CAPACITY = 250; // 100 + 150
+      const SMALL_CAPACITY = 100;
+      const LARGE_CAPACITY = 150;
+
+      // Per-gallon oil amounts from your Grok output
+      const OIL_PER_GALLON = {
+        400: { oz: 0.0512, ml: 1.5142 },
+        450: { oz: 0.0576, ml: 1.7034 },
+        500: { oz: 0.064, ml: 1.8927 },
+      };
+
+      // Handle PPM pill selection styling
+      ppmGroup.addEventListener("change", function (event) {
+        if (event.target.name !== "ppm") return;
+        const pills = ppmGroup.querySelectorAll(".ppm-pill");
+        pills.forEach((pill) => pill.classList.remove("selected"));
+        const selectedPill = event.target.closest(".ppm-pill");
+        if (selectedPill) selectedPill.classList.add("selected");
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        errorBox.textContent = "";
+
+        const miles = parseFloat(document.getElementById("miles").value);
+        const mpg = parseFloat(document.getElementById("mpg").value);
+        const ppmRadio = form.querySelector('input[name="ppm"]:checked');
+        const ppm = ppmRadio ? parseInt(ppmRadio.value, 10) : 400;
+
+        if (!isFinite(miles) || miles <= 0) {
+          errorBox.textContent = "Enter a positive number of miles.";
+          return;
+        }
+        if (!isFinite(mpg) || mpg <= 0) {
+          errorBox.textContent = "Enter a positive MPG value.";
+          return;
+        }
+
+        const fuelUsed = miles / mpg; // total gallons burned
+
+        if (fuelUsed <= 0) {
+          errorBox.textContent = "Calculated fuel used is zero; check inputs.";
+          return;
+        }
+
+        if (fuelUsed > TOTAL_CAPACITY) {
+          errorBox.textContent =
+            "Fuel used exceeds total tank capacity (250 gal). " +
+            "Check your miles or MPG.";
+          return;
+        }
+
+        const ratios = {
+          small: SMALL_CAPACITY / TOTAL_CAPACITY, // 100 / 250 = 0.4
+          large: LARGE_CAPACITY / TOTAL_CAPACITY, // 150 / 250 = 0.6
+        };
+
+        const gallonsSmall = fuelUsed * ratios.small;
+        const gallonsLarge = fuelUsed * ratios.large;
+
+        const perGallon = OIL_PER_GALLON[ppm];
+        const oilSmallOz = gallonsSmall * perGallon.oz;
+        const oilLargeOz = gallonsLarge * perGallon.oz;
+        const oilSmallMl = gallonsSmall * perGallon.ml;
+        const oilLargeMl = gallonsLarge * perGallon.ml;
+
+        const totalOilOz = oilSmallOz + oilLargeOz;
+        const totalOilMl = oilSmallMl + oilLargeMl;
+
+        const html = `
+          <div class="results-header">
+            <div class="results-title">Results (${ppm} ppm)</div>
+            <div class="results-subtitle">
+              Estimated usage: ${fuelUsed.toFixed(1)} gal burned
+            </div>
+          </div>
+
+          <div class="results-grid">
+            <div class="tank-card">
+              <div class="tank-header">
+                <div class="tank-name">100 gal tank</div>
+                <div class="tank-capacity">smaller tank</div>
+              </div>
+              <div class="tank-row">
+                <span class="label">Fuel to add:</span>
+                <span class="value">${gallonsSmall.toFixed(1)} gal</span>
+              </div>
+              <div class="tank-row">
+                <span class="label">2-stroke oil:</span>
+                <span class="value">${oilSmallOz.toFixed(2)} fl oz</span>
+              </div>
+              <div class="tank-row">
+                <span class="label"></span>
+                <span class="value">≈ ${oilSmallMl.toFixed(0)} mL</span>
+              </div>
+            </div>
+
+            <div class="tank-card">
+              <div class="tank-header">
+                <div class="tank-name">150 gal tank</div>
+                <div class="tank-capacity">larger tank</div>
+              </div>
+              <div class="tank-row">
+                <span class="label">Fuel to add:</span>
+                <span class="value">${gallonsLarge.toFixed(1)} gal</span>
+              </div>
+              <div class="tank-row">
+                <span class="label">2-stroke oil:</span>
+                <span class="value">${oilLargeOz.toFixed(2)} fl oz</span>
+              </div>
+              <div class="tank-row">
+                <span class="label"></span>
+                <span class="value">≈ ${oilLargeMl.toFixed(0)} mL</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="footnote">
+            • Logic assumes both tanks were full at the last fill, stayed mostly
+            equalized, and are refilled to the neck now. The 150 gal tank gets
+            ~60% of the replacement fuel, the 100 gal tank ~40%.<br/>
+            • Per-gallon dosing from your Grok output:
+            ${ppm} ppm ⇒ ${perGallon.oz.toFixed(4)} fl oz/gal
+            (${perGallon.ml.toFixed(3)} mL/gal).
+          </div>
+        `;
+
+        resultsBody.innerHTML = html;
+      });
+    })();
+  </script>
+</body>
+</html>
